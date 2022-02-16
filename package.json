@@ -1,16 +1,22 @@
 {
-  "name": "testthree",
-  "version": "0.0.0",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^2.6.4"
-  },
-  "dependencies": {
-    "lax.js": "^2.0.3",
-    "three": "^0.133.1"
-  }
+    "name": "casetta3d",
+    "version": "0.0.0",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "serve": "vite preview"
+    },
+    "devDependencies": {
+        "vite": "^2.6.4"
+    },
+    "dependencies": {
+        "lax.js": "^2.0.3",
+        "three": "^0.133.1"
+    },
+    "exports": {
+        ".": {
+            "import": "./assets",
+            "require": "./assets"
+        }
+    }
 }

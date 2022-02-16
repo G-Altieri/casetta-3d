@@ -11,6 +11,23 @@ import {
 import {
     MTLLoader
 } from 'three/examples/jsm/loaders/MTLLoader.js';
+
+/*
+//Import assets
+import casettaMlt from '/assets/model/fake-casetta-obg/fakecasetta.mtl?raw';
+import casettaObj from '/assets/model/fake-casetta-obg/fakecasetta.obj?raw';
+import grassMlt from '/assets/model/grass/grass.mtl?raw';
+import grassObj from '/assets/model/grass/grass.obj?raw';
+import bgAssets from '/assets/img/bg.jpg?raw';
+
+*/
+
+var casettaMlt = '/model/fake-casetta-obg/fakecasetta.mtl';
+var casettaObj = '/model/fake-casetta-obg/fakecasetta.obj';
+var grassMlt = '/model/grass/grass.mtl';
+var grassObj = 'model/grass/grass.obj';
+var bgAssets = '/img/bg.jpg';
+
 // Setup
 const scene = new THREE.Scene();
 
@@ -65,7 +82,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableZoom = true;
 
 //bg
-const bg = new THREE.TextureLoader().load('/assets/img/bg.jpg');
+const bg = new THREE.TextureLoader().load(bgAssets);
 scene.background = bg;
 
 
@@ -78,12 +95,12 @@ const mtlLoader2 = new MTLLoader()
 
 //Casetta
 mtlLoader.load(
-    '/assets/model/fake-casetta-obg/fakecasetta.mtl',
+    casettaMlt,
     (materials) => {
         materials.preload()
         objLoader.setMaterials(materials)
         objLoader.load(
-            '/assets/model/fake-casetta-obg/fakecasetta.obj',
+            casettaObj,
             (object) => {
                 casetta(object)
                 scene.add(object)
@@ -106,12 +123,12 @@ mtlLoader.load(
 
 //Grass
 mtlLoader2.load(
-    '/assets/model/grass/grass.mtl',
+    grassMlt,
     (materials) => {
         materials.preload()
         objLoader2.setMaterials(materials)
         objLoader2.load(
-            '/assets/model/grass/grass.obj',
+            grassObj,
             (object) => {
                 grass(object)
                 scene.add(object);
