@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="/img/casetta.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Casetta</title>
 </head>
@@ -13,10 +13,23 @@
 <body>
     <!-- <div id="app"></div> -->
     <canvas id="bg"></canvas>
-
+    <div class="load" id="load">Caricamento Risorse</div>
     <!-- <button class="button5" id="myBtn">Go</button> -->
 </body>
 <style>
+    .load {
+        position: absolute;
+        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .hidden {
+        display: none;
+    }
+    
     .button {
         background-color: #4CAF50;
         /* Green */

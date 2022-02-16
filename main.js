@@ -11,16 +11,16 @@ import {
 import {
     MTLLoader
 } from 'three/examples/jsm/loaders/MTLLoader.js';
+import {
+    TextGeometry
+} from 'three/examples/jsm/geometries/TextGeometry.js'
+import {
+    FontLoader
+} from 'three/examples/jsm/loaders/FontLoader.js'
+import {
+    LoadingManager
+} from 'three';
 
-/*
-//Import assets
-import casettaMlt from '/assets/model/fake-casetta-obg/fakecasetta.mtl?raw';
-import casettaObj from '/assets/model/fake-casetta-obg/fakecasetta.obj?raw';
-import grassMlt from '/assets/model/grass/grass.mtl?raw';
-import grassObj from '/assets/model/grass/grass.obj?raw';
-import bgAssets from '/assets/img/bg.jpg?raw';
-
-*/
 
 var casettaMlt = '/model/fake-casetta-obg/fakecasetta.mtl';
 var casettaObj = '/model/fake-casetta-obg/fakecasetta.obj';
@@ -30,7 +30,6 @@ var bgAssets = '/img/bg.jpg';
 
 // Setup
 const scene = new THREE.Scene();
-
 
 //camera
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 5000);
@@ -86,42 +85,69 @@ const bg = new THREE.TextureLoader().load(bgAssets);
 scene.background = bg;
 
 
+//Loading Screen
+var loadingScreen = {
+    scene: new THREE.Scene(),
+    camera: new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 1000),
+    box: new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0., 5), new THREE.MeshBasicMaterial({
+        color: 0x4444ff
+    }))
+};
+
+var resourse_loaded = true;
+loadingScreen.box.position.set(0, 0, 5);
+loadingScreen.camera.lookAt(loadingScreen.box.position)
+loadingScreen.scene.add(loadingScreen.box)
+
+
+
+//Loading Manager
+const loadingManager = new THREE.LoadingManager();
+//loadingManager.onProgress = function(item, loaded, total) { console.log(item, loaded, total) }
+loadingManager.onLoad = function() {
+    resourse_loaded = false;
+    var element = document.getElementById("load");
+    element.classList.add("hidden");
+    console.log("Risorse Caricate");
+}
+
+
+
 //Loading Model
-const objLoader = new OBJLoader()
-const objLoader2 = new OBJLoader()
-const mtlLoader = new MTLLoader()
-const mtlLoader2 = new MTLLoader()
+const objLoader = new OBJLoader(loadingManager)
+const objLoader2 = new OBJLoader(loadingManager)
+const mtlLoader = new MTLLoader(loadingManager)
+const mtlLoader2 = new MTLLoader(loadingManager)
 
 
 //Casetta
 mtlLoader.load(
-    casettaMlt,
-    (materials) => {
-        materials.preload()
-        objLoader.setMaterials(materials)
-        objLoader.load(
-            casettaObj,
-            (object) => {
-                casetta(object)
-                scene.add(object)
-            },
-            (xhr) => {
-                console.log((xhr.loaded / xhr.total) * 100 + '% loaded obj Casetta')
-            },
-            (error) => {
-                console.log('An error happened')
-            }
-        )
-    },
-    (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + '% loaded mtl Casetta')
-    },
-    (error) => {
-        console.log('An error happened2')
-    }
-)
-
-//Grass
+        casettaMlt,
+        (materials) => {
+            materials.preload()
+            objLoader.setMaterials(materials)
+            objLoader.load(
+                casettaObj,
+                (object) => {
+                    casetta(object)
+                    scene.add(object)
+                },
+                (xhr) => {
+                    console.log((xhr.loaded / xhr.total) * 100 + '% loaded obj Casetta')
+                },
+                (error) => {
+                    console.log('An error happened')
+                }
+            )
+        },
+        (xhr) => {
+            console.log((xhr.loaded / xhr.total) * 100 + '% loaded mtl Casetta')
+        },
+        (error) => {
+            console.log('An error happened2')
+        }
+    )
+    //Grass
 mtlLoader2.load(
     grassMlt,
     (materials) => {
@@ -165,14 +191,19 @@ var radius = 100;
 function animate() {
     requestAnimationFrame(animate);
 
+    //Loading View 
+    if (resourse_loaded == true) {
+        console.log("Risorse non caricate")
+        renderer.render(loadingScreen.scene, loadingScreen.camera);
+        return;
+    }
+
     //Movement
     //camera.position.setX(x += 0.1 * Math.sin(1));
 
     camera.position.x = radius * Math.cos(angle);
     camera.position.z = radius * Math.sin(angle);
     angle += 0.003;
-
-
 
     controls.update();
 
