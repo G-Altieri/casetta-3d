@@ -1,38 +1,35 @@
 import './style.css';
 //import lax from 'lax.js'
 import * as THREE from 'three';
-import {
-    OrbitControls
-} from 'three/examples/jsm/controls/OrbitControls';
-//import { GLTFLoader } from 'three/examples/jsm/loader/GLTFLoader.js';
-import {
-    OBJLoader
-} from 'three/examples/jsm/loaders/OBJLoader.js';
-import {
-    MTLLoader
-} from 'three/examples/jsm/loaders/MTLLoader.js';
-import {
-    TextGeometry
-} from 'three/examples/jsm/geometries/TextGeometry.js'
-import {
-    FontLoader
-} from 'three/examples/jsm/loaders/FontLoader.js'
-import {
-    LoadingManager
-} from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { LoadingManager } from 'three';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { GUI } from 'dat.gui';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 
+var casettaGLTF = '/model/casetta glb/casetta.glb';
 var casettaMlt = '/model/fake-casetta-obg/fakecasetta.mtl';
 var casettaObj = '/model/fake-casetta-obg/fakecasetta.obj';
 var grassMlt = '/model/grass/grass.mtl';
 var grassObj = 'model/grass/grass.obj';
-var bgAssets = '/img/bg.jpg';
+var bgAssets = '/img/bg.hdr';
+
 
 // Setup
 const scene = new THREE.Scene();
 
 //camera
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 5000);
+camera.position.setZ(50);
+camera.position.setX(50);
+camera.position.setY(12);
+
+
 
 //renders
 const renderer = new THREE.WebGLRenderer({
@@ -40,49 +37,40 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(100);
-camera.position.setX(0);
-camera.position.setY(15);
-
-//Render Resize the windows 
-window.addEventListener('resize', function() {
-    var width = window.innerWidth;
-    var height = window.innerHeight;
-    renderer.setSize(width, height);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    //console.log("Resize");
-})
-renderer.render(scene, camera);
-
 
 // Lights
-const pointLight = new THREE.PointLight(0xffffff);
-pointLight.position.set(20, 30, 0);
-const lightHelper2 = new THREE.PointLightHelper(pointLight);
+const pointLight1 = new THREE.PointLight(0xffffff);
+const lightHelper1 = new THREE.PointLightHelper(pointLight1);
+pointLight1.position.set(100, 50, 100);
+pointLight1.intensity = 1;
 
 const pointLight2 = new THREE.PointLight(0xffffff);
-pointLight2.position.set(0, 50, -20);
-const lightHelper3 = new THREE.PointLightHelper(pointLight2);
+const lightHelper2 = new THREE.PointLightHelper(pointLight2);
+pointLight2.position.set(-100, 13, -100);
+pointLight2.intensity = 0.25;
 
-const ambientLight = new THREE.AmbientLight(0x404040);
-ambientLight.intensity = 4;
-const lightHelper = new THREE.PointLightHelper(ambientLight);
+const ambientLight = new THREE.AmbientLight(0xffffff);
+ambientLight.intensity = 0.05;
+const ambientHelper = new THREE.PointLightHelper(ambientLight);
 
-scene.add(pointLight, pointLight2, ambientLight);
+scene.add(ambientLight, pointLight1, pointLight2);
 
 const gridHelper = new THREE.GridHelper(200, 50);
-scene.add(lightHelper, lightHelper2, lightHelper3, gridHelper);
+scene.add(lightHelper1, ambientHelper, gridHelper, lightHelper2);
 
 //Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableZoom = true;
 
-//bg
-const bg = new THREE.TextureLoader().load(bgAssets);
-scene.background = bg;
+//BackGround
+//const bg = new THREE.TextureLoader().load(bgAssets);
+new RGBELoader()
+    .load(bgAssets, function(texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+        scene.environment = texture;
+        render();
+    });
 
 
 //Loading Screen
@@ -93,12 +81,10 @@ var loadingScreen = {
         color: 0x4444ff
     }))
 };
-
 var resourse_loaded = true;
 loadingScreen.box.position.set(0, 0, 5);
 loadingScreen.camera.lookAt(loadingScreen.box.position)
 loadingScreen.scene.add(loadingScreen.box)
-
 
 
 //Loading Manager
@@ -121,7 +107,7 @@ const mtlLoader2 = new MTLLoader(loadingManager)
 
 
 //Casetta
-mtlLoader.load(
+/*mtlLoader.load(
         casettaMlt,
         (materials) => {
             materials.preload()
@@ -146,8 +132,8 @@ mtlLoader.load(
         (error) => {
             console.log('An error happened2')
         }
-    )
-    //Grass
+    )*/
+//Grass
 mtlLoader2.load(
     grassMlt,
     (materials) => {
@@ -175,6 +161,15 @@ mtlLoader2.load(
     }
 )
 
+const loaderCasetta = new GLTFLoader();
+loaderCasetta.load(casettaGLTF, function(gltf) {
+    gltf.scene.position.x = -37;
+    gltf.scene.position.y = 5;
+    gltf.scene.position.z = 30;
+    //gltf.scene.rotation.x = 0;
+    scene.add(gltf.scene);
+});
+
 
 function casetta(object) {
     object.position.y = 8;
@@ -185,19 +180,70 @@ function grass(object) {
 }
 
 
-var angle = 0;
-var radius = 100;
+
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 2;
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+//Render Resize the windows 
+window.addEventListener('resize', function() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    //console.log("Resize");
+})
+
+//GUI Dev
+const gui = new GUI()
+const light1Folder = gui.addFolder('Light 1')
+light1Folder.add(pointLight1.position, 'x', 0, 100)
+light1Folder.add(pointLight1.position, 'y', 0, 100)
+light1Folder.add(pointLight1.position, 'z', 0, 100)
+light1Folder.add(pointLight1, 'intensity', 0, 2, 0.01);
+//light1Folder.open()
+const light2Folder = gui.addFolder('Light 2')
+light2Folder.add(pointLight2.position, 'x', -100, 100)
+light2Folder.add(pointLight2.position, 'y', -100, 100)
+light2Folder.add(pointLight2.position, 'z', -100, 100)
+light2Folder.add(pointLight2, 'intensity', 0, 2, 0.01);
+//light2Folder.open()
+const cameraFolder = gui.addFolder('Camera')
+cameraFolder.add(camera.position, 'z', 0, 200)
+cameraFolder.add(camera.position, 'x', 0, 200)
+cameraFolder.add(camera.position, 'y', 0, 200)
+    //cameraFolder.add(camera.rotation, 'z', 0, 200)
+    //cameraFolder.add(camera.rotation, 'x', 0, 200)
+    //cameraFolder.add(camera.rotation, 'y', 0, 200)
+    //cameraFolder.open()
+gui.close();
+
+/*
+const casettaFolder = gui.addFolder('Casetta')
+    //casettaFolder.add(scene.getObjectByName("Scene").position, 'z', 0, 200)
+casettaFolder.add(camera.position, 'x', 0, 200)
+casettaFolder.add(camera.position, 'y', 0, 200)
+    //cameraFolder.open()
+*/
+
 // Animation Loop
+var angle = 0;
+var radius = 80;
+
+render()
+controls.target.set(0, 20, 0)
+
 function animate() {
     requestAnimationFrame(animate);
-
     //Loading View 
     if (resourse_loaded == true) {
         console.log("Risorse non caricate")
         renderer.render(loadingScreen.scene, loadingScreen.camera);
         return;
     }
-
     //Movement
     //camera.position.setX(x += 0.1 * Math.sin(1));
 
@@ -207,11 +253,14 @@ function animate() {
 
     controls.update();
 
-    renderer.render(scene, camera);
+    render()
 }
 
 animate();
 
+function render() {
+    renderer.render(scene, camera);
+}
 
 
 /*
