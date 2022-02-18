@@ -1,18 +1,37 @@
 import './style.css';
 //import lax from 'lax.js'
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
-import { LoadingManager } from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { GUI } from 'dat.gui';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {
+    OrbitControls
+} from 'three/examples/jsm/controls/OrbitControls';
+import {
+    OBJLoader
+} from 'three/examples/jsm/loaders/OBJLoader.js';
+import {
+    MTLLoader
+} from 'three/examples/jsm/loaders/MTLLoader.js';
+import {
+    TextGeometry
+} from 'three/examples/jsm/geometries/TextGeometry.js'
+import {
+    FontLoader
+} from 'three/examples/jsm/loaders/FontLoader.js'
+import {
+    LoadingManager
+} from 'three';
+import {
+    RGBELoader
+} from 'three/examples/jsm/loaders/RGBELoader.js';
+import {
+    GUI
+} from 'dat.gui';
+import {
+    GLTFLoader
+} from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 
 var casettaGLTF = '/model/casetta glb/casetta.glb';
+var gekoGLTF = '/model/geko/scene.gltf';
 var casettaMlt = '/model/fake-casetta-obg/fakecasetta.mtl';
 var casettaObj = '/model/fake-casetta-obg/fakecasetta.obj';
 var grassMlt = '/model/grass/grass.mtl';
@@ -28,7 +47,6 @@ const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerH
 camera.position.setZ(50);
 camera.position.setX(50);
 camera.position.setY(12);
-
 
 
 //renders
@@ -62,16 +80,6 @@ scene.add(lightHelper1, ambientHelper, gridHelper, lightHelper2);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableZoom = true;
 
-//BackGround
-//const bg = new THREE.TextureLoader().load(bgAssets);
-new RGBELoader()
-    .load(bgAssets, function(texture) {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        scene.background = texture;
-        scene.environment = texture;
-        render();
-    });
-
 
 //Loading Screen
 var loadingScreen = {
@@ -97,59 +105,62 @@ loadingManager.onLoad = function() {
     console.log("Risorse Caricate");
 }
 
-
+//BackGround
+//const bg = new THREE.TextureLoader().load(bgAssets);
+new RGBELoader(loadingManager)
+    .load(bgAssets, function(texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+        scene.environment = texture;
+        render();
+    });
 
 //Loading Model
 const objLoader = new OBJLoader(loadingManager)
 const objLoader2 = new OBJLoader(loadingManager)
 const mtlLoader = new MTLLoader(loadingManager)
 const mtlLoader2 = new MTLLoader(loadingManager)
+const loaderCasetta = new GLTFLoader(loadingManager);
 
-
-//Casetta
-/*mtlLoader.load(
-        casettaMlt,
-        (materials) => {
-            materials.preload()
-            objLoader.setMaterials(materials)
-            objLoader.load(
-                casettaObj,
-                (object) => {
-                    casetta(object)
-                    scene.add(object)
-                },
-                (xhr) => {
-                    console.log((xhr.loaded / xhr.total) * 100 + '% loaded obj Casetta')
-                },
-                (error) => {
-                    console.log('An error happened')
-                }
-            )
-        },
-        (xhr) => {
-            console.log((xhr.loaded / xhr.total) * 100 + '% loaded mtl Casetta')
-        },
-        (error) => {
-            console.log('An error happened2')
-        }
-    )*/
 //Grass
+var casettaModel;
+var gekoModel;
+var scaleGeko = 1;
 mtlLoader2.load(
     grassMlt,
-    (materials) => {
-        materials.preload()
-        objLoader2.setMaterials(materials)
+    (materialGrass) => {
+        materialGrass.preload()
+        objLoader2.setMaterials(materialGrass)
         objLoader2.load(
             grassObj,
-            (object) => {
-                grass(object)
-                scene.add(object);
+            (grass) => {
+                grass.rotation.x = 300;
+                scene.add(grass);
+                //Casetta
+                loaderCasetta.load(casettaGLTF, function(gltf) {
+                    casettaModel = gltf;
+                    gltf.scene.position.x = -37;
+                    gltf.scene.position.y = 5;
+                    gltf.scene.position.z = 30;
+                    //gltf.scene.rotation.x = 0;
+                    scene.add(casettaModel.scene);
+                    //Geko
+                    loaderCasetta.load(gekoGLTF, function(gltf) {
+                        gekoModel = gltf;
+                        geko()
+                        gekoModel.scene.children[0].scale.set(gekoModel.scene.children[0].scale.x * scaleGeko, gekoModel.scene.children[0].scale.y * scaleGeko, gekoModel.scene.children[0].scale.z * scaleGeko)
+                        scene.add(gekoModel.scene);
+                        console.log(gekoModel.scene.children[0].scale)
+                        init()
+                    });
+                });
+
             },
             (xhr) => {
                 console.log((xhr.loaded / xhr.total) * 100 + '% loaded obj Grass')
             },
             (error) => {
-                console.log('An error happened')
+                console.log('An error happened Grass ' + error)
             }
         )
     },
@@ -157,19 +168,21 @@ mtlLoader2.load(
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded mtl Grass')
     },
     (error) => {
-        console.log('An error happened2')
+        console.log('An error happened2 Grass')
     }
 )
 
-const loaderCasetta = new GLTFLoader();
-loaderCasetta.load(casettaGLTF, function(gltf) {
-    gltf.scene.position.x = -37;
-    gltf.scene.position.y = 5;
-    gltf.scene.position.z = 30;
-    //gltf.scene.rotation.x = 0;
-    scene.add(gltf.scene);
-});
 
+
+function geko() {
+    gekoModel.scene.position.x = -2;
+    gekoModel.scene.position.y = 15.6;
+    gekoModel.scene.position.z = -6;
+    gekoModel.scene.rotation.x = 14;
+    gekoModel.scene.rotation.y = 18;
+    gekoModel.scene.rotation.z = 3;
+
+}
 
 function casetta(object) {
     object.position.y = 8;
@@ -197,29 +210,72 @@ window.addEventListener('resize', function() {
     //console.log("Resize");
 })
 
-//GUI Dev
-const gui = new GUI()
-const light1Folder = gui.addFolder('Light 1')
-light1Folder.add(pointLight1.position, 'x', 0, 100)
-light1Folder.add(pointLight1.position, 'y', 0, 100)
-light1Folder.add(pointLight1.position, 'z', 0, 100)
-light1Folder.add(pointLight1, 'intensity', 0, 2, 0.01);
-//light1Folder.open()
-const light2Folder = gui.addFolder('Light 2')
-light2Folder.add(pointLight2.position, 'x', -100, 100)
-light2Folder.add(pointLight2.position, 'y', -100, 100)
-light2Folder.add(pointLight2.position, 'z', -100, 100)
-light2Folder.add(pointLight2, 'intensity', 0, 2, 0.01);
-//light2Folder.open()
-const cameraFolder = gui.addFolder('Camera')
-cameraFolder.add(camera.position, 'z', 0, 200)
-cameraFolder.add(camera.position, 'x', 0, 200)
-cameraFolder.add(camera.position, 'y', 0, 200)
-    //cameraFolder.add(camera.rotation, 'z', 0, 200)
-    //cameraFolder.add(camera.rotation, 'x', 0, 200)
-    //cameraFolder.add(camera.rotation, 'y', 0, 200)
-    //cameraFolder.open()
-gui.close();
+function init() {
+    //GUI Dev
+    const gui = new GUI()
+    const light1Folder = gui.addFolder('Light 1')
+    light1Folder.add(pointLight1.position, 'x', 0, 100)
+    light1Folder.add(pointLight1.position, 'y', 0, 100)
+    light1Folder.add(pointLight1.position, 'z', 0, 100)
+    light1Folder.add(pointLight1, 'intensity', 0, 2, 0.01);
+    //light1Folder.open()
+    const light2Folder = gui.addFolder('Light 2')
+    light2Folder.add(pointLight2.position, 'x', -100, 100)
+    light2Folder.add(pointLight2.position, 'y', -100, 100)
+    light2Folder.add(pointLight2.position, 'z', -100, 100)
+    light2Folder.add(pointLight2, 'intensity', 0, 2, 0.01);
+    //light2Folder.open()
+    const cameraFolder = gui.addFolder('Camera')
+    cameraFolder.add(camera.position, 'z', 0, 200)
+    cameraFolder.add(camera.position, 'x', 0, 200)
+    cameraFolder.add(camera.position, 'y', 0, 200)
+        //cameraFolder.open()
+    const casettaFolder = gui.addFolder('Casetta')
+    casettaFolder.add(casettaModel.scene.position, 'z', -200, 200)
+    casettaFolder.add(casettaModel.scene.position, 'x', -200, 200)
+    casettaFolder.add(casettaModel.scene.position, 'y', -200, 200)
+        //gui.close();
+    var params = {
+        animatedRotation: false
+    };
+    const animationFolder = gui.addFolder('Animation')
+    animationFolder.add(params, "animatedRotation").name("animated Rotation");
+
+    const gekoFolder = gui.addFolder('Geko')
+    gekoFolder.add(gekoModel.scene.position, 'x', -100, 100, 0.01)
+    gekoFolder.add(gekoModel.scene.position, 'y', -100, 100, 0.01)
+    gekoFolder.add(gekoModel.scene.position, 'z', -100, 100, 0.01)
+    gekoFolder.add(gekoModel.scene.rotation, 'x', -100, 100, 0.01)
+    gekoFolder.add(gekoModel.scene.rotation, 'y', -100, 100, 0.01)
+    gekoFolder.add(gekoModel.scene.rotation, 'z', -100, 100, 0.01)
+        //gekoFolder.add(scaleGeko, 'xa').min(0).max(200).listen();
+
+    // Animation Loop
+    var angle = 0;
+    var radius = 80;
+
+    function animate() {
+        requestAnimationFrame(animate);
+        //Loading View 
+        if (resourse_loaded == true) {
+            console.log("Risorse non caricate")
+            renderer.render(loadingScreen.scene, loadingScreen.camera);
+            return;
+        }
+        //Movement
+        //camera.position.setX(x += 0.1 * Math.sin(1));
+        if (params.animatedRotation) {
+            camera.position.x = radius * Math.cos(angle);
+            camera.position.z = radius * Math.sin(angle);
+            angle += 0.003;
+        }
+        controls.update();
+
+        render()
+    }
+
+    animate();
+}
 
 /*
 const casettaFolder = gui.addFolder('Casetta')
@@ -229,40 +285,14 @@ casettaFolder.add(camera.position, 'y', 0, 200)
     //cameraFolder.open()
 */
 
-// Animation Loop
-var angle = 0;
-var radius = 80;
+
 
 render()
 controls.target.set(0, 20, 0)
 
-function animate() {
-    requestAnimationFrame(animate);
-    //Loading View 
-    if (resourse_loaded == true) {
-        console.log("Risorse non caricate")
-        renderer.render(loadingScreen.scene, loadingScreen.camera);
-        return;
-    }
-    //Movement
-    //camera.position.setX(x += 0.1 * Math.sin(1));
-
-    camera.position.x = radius * Math.cos(angle);
-    camera.position.z = radius * Math.sin(angle);
-    angle += 0.003;
-
-    controls.update();
-
-    render()
-}
-
-animate();
-
 function render() {
     renderer.render(scene, camera);
 }
-
-
 /*
 const clock = new THREE.Clock()
 const tick = () => {
@@ -327,3 +357,31 @@ const torus = new THREE.Mesh(geometry, material);
 
 //scene.add(torus);
 */
+
+//Casetta
+/*mtlLoader.load(
+        casettaMlt,
+        (materials) => {
+            materials.preload()
+            objLoader.setMaterials(materials)
+            objLoader.load(
+                casettaObj,
+                (object) => {
+                    casetta(object)
+                    scene.add(object)
+                },
+                (xhr) => {
+                    console.log((xhr.loaded / xhr.total) * 100 + '% loaded obj Casetta')
+                },
+                (error) => {
+                    console.log('An error happened')
+                }
+            )
+        },
+        (xhr) => {
+            console.log((xhr.loaded / xhr.total) * 100 + '% loaded mtl Casetta')
+        },
+        (error) => {
+            console.log('An error happened2')
+        }
+    )*/
