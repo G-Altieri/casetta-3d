@@ -41,8 +41,9 @@ var bgAssets = '/img/bg.hdr';
 
 // Setup
 const scene = new THREE.Scene();
-
-//camera
+var clock = new THREE.Clock();
+var mixer
+    //camera
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 5000);
 camera.position.setZ(50);
 camera.position.setX(50);
@@ -115,6 +116,11 @@ new RGBELoader(loadingManager)
         render();
     });
 
+
+//Animation Casetta
+
+
+
 //Loading Model
 const objLoader = new OBJLoader(loadingManager)
 const objLoader2 = new OBJLoader(loadingManager)
@@ -122,11 +128,11 @@ const mtlLoader = new MTLLoader(loadingManager)
 const mtlLoader2 = new MTLLoader(loadingManager)
 const loaderCasetta = new GLTFLoader(loadingManager);
 
-//Grass
 var casettaModel;
 var gekoModel;
 var scaleGeko = 1;
 mtlLoader2.load(
+    //Grass
     grassMlt,
     (materialGrass) => {
         materialGrass.preload()
@@ -139,11 +145,13 @@ mtlLoader2.load(
                 //Casetta
                 loaderCasetta.load(casettaGLTF, function(gltf) {
                     casettaModel = gltf;
-                    gltf.scene.position.x = -37;
-                    gltf.scene.position.y = 5;
-                    gltf.scene.position.z = 30;
-                    //gltf.scene.rotation.x = 0;
+                    casettaModel.scene.position.x = -37;
+                    casettaModel.scene.position.y = 5;
+                    casettaModel.scene.position.z = 30;
+
+                    animationCasetta(casettaModel);
                     scene.add(casettaModel.scene);
+
                     //Geko
                     loaderCasetta.load(gekoGLTF, function(gltf) {
                         gekoModel = gltf;
@@ -172,7 +180,12 @@ mtlLoader2.load(
     }
 )
 
-
+function animationCasetta(gltf) {
+    mixer = new THREE.AnimationMixer(casettaModel.scene);
+    casettaModel.animations.forEach((clip) => {
+        mixer.clipAction(clip).play();
+    });
+}
 
 function geko() {
     gekoModel.scene.position.x = -2;
@@ -269,6 +282,12 @@ function init() {
             camera.position.z = radius * Math.sin(angle);
             angle += 0.003;
         }
+
+
+        //Animation 
+        var delta = clock.getDelta();
+        if (mixer) mixer.update(delta);
+
         controls.update();
 
         render()
@@ -385,3 +404,14 @@ const torus = new THREE.Mesh(geometry, material);
             console.log('An error happened2')
         }
     )*/
+
+
+
+/*
+//BUTTON
+document.getElementById("myBtn").addEventListener("click", function() {
+   
+    //setTimeout(() => {
+    //}, 1000);
+});
+*/
