@@ -28,7 +28,7 @@ import {
 import {
     GLTFLoader
 } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
+import Stats from 'three/examples/jsm/libs/stats.module'
 
 var casettaGLTF = '/model/casetta glb/casetta.glb';
 var gekoGLTF = '/model/geko/scene.gltf';
@@ -181,10 +181,12 @@ mtlLoader2.load(
 )
 
 function animationCasetta(gltf) {
+    /*
     mixer = new THREE.AnimationMixer(casettaModel.scene);
     casettaModel.animations.forEach((clip) => {
         mixer.clipAction(clip).play();
     });
+    */
 }
 
 function geko() {
@@ -263,6 +265,10 @@ function init() {
     gekoFolder.add(gekoModel.scene.rotation, 'z', -100, 100, 0.01)
         //gekoFolder.add(scaleGeko, 'xa').min(0).max(200).listen();
 
+
+    const stats = Stats()
+    document.body.appendChild(stats.dom)
+
     // Animation Loop
     var angle = 0;
     var radius = 80;
@@ -283,19 +289,50 @@ function init() {
             angle += 0.003;
         }
 
-
+        //Scroll Animation 
+        //camera.position.y = scrollY
+        //camera.position.x = scrollY
         //Animation 
         var delta = clock.getDelta();
         if (mixer) mixer.update(delta);
 
         controls.update();
+        stats.update()
 
         render()
     }
 
     animate();
-}
 
+    //BUTTON
+    var animateCasettaShow = false;
+    var animateCasettaX = false;
+    document.getElementById("myBtn").addEventListener("click", function() {
+        animateCasettaShow = !animateCasettaShow;
+        mixer = new THREE.AnimationMixer(casettaModel.scene);
+        let animationC = mixer.clipAction(casettaModel.animations[0]);
+        animationC.setLoop(1, 1);
+        animationC.clampWhenFinished = true;
+        animationC.enable = true;
+        if (!animationC.isRunning()) {
+            if (animateCasettaShow) {
+                animationC.timeScale = 1;
+                animationC.play();
+                $("#myBtn").html("Rimonta Casetta");
+            } else {
+                $("#myBtn").html("Smonta Casetta");
+                animationC.timeScale = -1;
+                animationC.play();
+            }
+        }
+        /*    casettaModel.animations.forEach((clip) => {
+            mixer.clipAction(clip).play();
+        });
+        */
+        console.log("Animated Casetta")
+    });
+
+} //init
 /*
 const casettaFolder = gui.addFolder('Casetta')
     //casettaFolder.add(scene.getObjectByName("Scene").position, 'z', 0, 200)
@@ -303,6 +340,18 @@ casettaFolder.add(camera.position, 'x', 0, 200)
 casettaFolder.add(camera.position, 'y', 0, 200)
     //cameraFolder.open()
 */
+var scrollY = 0
+window.addEventListener("wheel", function(e) {
+    if (e.deltaY > 0)
+        scrollY -= 1
+    else
+        scrollY += 1
+        //console.log(scrollY)
+}, true);
+
+
+
+
 
 
 
